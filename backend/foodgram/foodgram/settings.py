@@ -144,6 +144,8 @@ REST_FRAMEWORK = {
 DJOSER = {
     # CRITICAL FIX: Setting TOKEN_MODEL to None tells Djoser to use JWT.
     'TOKEN_MODEL': None, 
+    'HIDE_USERS': False, 
+
     
     # FIX: Explicitly specify only the necessary JWT view URLs.
     # The 'token_create' and 'token_destroy' views are now removed 
@@ -157,18 +159,23 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {
-        'user_create': 'users.serializers.CustomUserSerializer',
+        'user_create': 'users.serializers.CustomUserCreateSerializer',
         'user': 'users.serializers.CustomUserSerializer',
         'current_user': 'users.serializers.CustomUserSerializer',
     },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.AllowAny'],      # Просмотр профиля пользователя (GET /users/{id}/)
+        'user_list': ['rest_framework.permissions.AllowAny'], # Список пользователей (GET /users/)
+        'current_user': ['rest_framework.permissions.IsAuthenticated'], # Текущий пользователь /me/ (оставляем закрытым)
+    }
 }
 # 4. JWT SETTINGS (Recommended)
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_TYPES': ('Bearer', 'Token'),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }

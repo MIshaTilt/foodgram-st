@@ -3,8 +3,12 @@ from django.db import models
 from django.core.validators import RegexValidator
 
 class User(AbstractUser):
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    # ИЗМЕНЕНИЕ 1: Возвращаем username как поле для логина
+    USERNAME_FIELD = 'username'
+    
+    # ИЗМЕНЕНИЕ 2: email переносим в обязательные поля (так как он перестал быть USERNAME_FIELD)
+    # username из списка убираем (он автоматически обязателен, т.к. он USERNAME_FIELD)
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     email = models.EmailField(
         max_length=254, 

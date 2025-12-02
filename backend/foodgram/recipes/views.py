@@ -7,11 +7,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe
+from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe, Tag
 from recipes.serializers import (
     IngredientSerializer, RecipeListSerializer, RecipeCreateSerializer,
-    RecipeMinifiedSerializer
+    RecipeMinifiedSerializer, TagSerializer
 )
 from recipes.permissions import IsAuthorOrReadOnly
 from recipes.filters import RecipeFilter, IngredientFilter
@@ -22,10 +23,18 @@ class CustomPagination(PageNumberPagination):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
+    permission_classes = (AllowAny,) 
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
     pagination_class = None
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (permissions.AllowAny,) # Теги доступны всем
+    pagination_class = None
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -83,6 +92,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
+        # Убедимся, что рецепт существует (вернет 404, если нет)
         recipe = get_object_or_404(Recipe, pk=pk)
+        
+        # Генерируем ссылку. 
+        # build_absolute_uri корректно создаст полный URL (http://domain/s/id)
         link = request.build_absolute_uri(f'/s/{recipe.id}')
-        return Response({'short-link': link})
+        
+        return Response({'short-link': link}, status=status.HTTP_200_OK)

@@ -6,6 +6,7 @@ from .models import Ingredient
 from .models import IngredientInRecipe
 from .models import Favorite
 from .models import ShoppingCart
+from .models import Tag
 
 # ...и регистрируем её в админке:
 admin.site.register(Recipe)
@@ -13,3 +14,4 @@ admin.site.register(Ingredient)
 admin.site.register(IngredientInRecipe)
 admin.site.register(Favorite)
 admin.site.register(ShoppingCart)
+admin.site.register(Tag)

@@ -17,6 +17,16 @@ class Base64ImageField(serializers.ImageField):
 
 # --- User Serializers ---
 
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """
+    Сериализатор для регистрации пользователей.
+    Возвращает только id, username, email, first_name, last_name.
+    """
+    class Meta(UserCreateSerializer.Meta):
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password')
+
+
 class CustomUserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField()
     avatar = serializers.ImageField(read_only=True)
@@ -61,3 +71,7 @@ class SubscriptionSerializer(CustomUserSerializer):
             except ValueError:
                 pass
         return RecipeMinifiedSerializer(recipes, many=True, context=self.context).data
+    
+class TokenCreateSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
