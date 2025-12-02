@@ -58,8 +58,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_from(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
-        get_object_or_404(model, user=user, recipe=recipe).delete()
+        
+        # ИЗМЕНЕНИЕ ЗДЕСЬ:
+        # Было: get_object_or_404(model, user=user, recipe=recipe).delete()
+        # Стало:
+        obj = model.objects.filter(user=user, recipe=recipe)
+        if not obj.exists():
+            return Response(
+                {'error': 'Рецепт не найден в списке'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
     @action(detail=True, methods=['post', 'delete'], permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):

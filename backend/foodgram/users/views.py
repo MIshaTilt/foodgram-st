@@ -58,8 +58,23 @@ class UserViewSet(DjoserUserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            get_object_or_404(Subscription, user=user, author=author).delete()
+            # ИЗМЕНЕНИЕ ЗДЕСЬ:
+            # Вместо get_object_or_404 проверяем фильтром
+            subscription = Subscription.objects.filter(user=user, author=author)
+            if not subscription.exists():
+                return Response(
+                    {'error': 'Вы не были подписаны на этого пользователя'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_permissions(self):
+        if self.action == 'me':
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
+
+
         
 
 class TokenCreateView(APIView):
