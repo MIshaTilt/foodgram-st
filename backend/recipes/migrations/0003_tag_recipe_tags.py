@@ -13,10 +13,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tag',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=32, unique=True, verbose_name='Name')),
-                ('color', models.CharField(max_length=32, unique=True, verbose_name='Color')),
-                ('slug', models.SlugField(max_length=32, unique=True, verbose_name='Slug')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=32,
+                 unique=True, verbose_name='Name')),
+                ('color', models.CharField(max_length=32,
+                 unique=True, verbose_name='Color')),
+                ('slug', models.SlugField(max_length=32,
+                 unique=True, verbose_name='Slug')),
             ],
             options={
                 'verbose_name': 'Tag',
@@ -27,6 +31,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='recipe',
             name='tags',
-            field=models.ManyToManyField(related_name='recipes', to='recipes.tag', verbose_name='Tags'),
+            field=models.ManyToManyField(
+                related_name='recipes', to='recipes.tag', verbose_name='Tags'),
         ),
     ]

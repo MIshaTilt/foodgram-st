@@ -6,6 +6,7 @@ from users.serializers import CustomUserSerializer, Base64ImageField
 
 # --- Ingredient Serializers ---
 
+
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
@@ -15,11 +16,13 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = IngredientInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
+
 
 class CreateIngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
@@ -31,17 +34,20 @@ class CreateIngredientInRecipeSerializer(serializers.ModelSerializer):
 
 # --- Recipe Serializers ---
 
+
 class RecipeMinifiedSerializer(serializers.ModelSerializer):
     image = serializers.ImageField()
-    
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
+
 class RecipeListSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
 
-    ingredients = IngredientInRecipeSerializer(source='ingredient_list', many=True, read_only=True)
+    ingredients = IngredientInRecipeSerializer(
+        source='ingredient_list', many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = serializers.ImageField()
@@ -65,6 +71,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             return False
         return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
 
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = CreateIngredientInRecipeSerializer(many=True)
     image = Base64ImageField()
@@ -72,7 +79,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'ingredients', 'image', 'name', 'text', 'cooking_time', 'author')
+        fields = ('id', 'ingredients', 'image', 'name',
+                  'text', 'cooking_time', 'author')
 
     def validate(self, data):
         # Проверка: если мы обновляем рецепт (self.instance не None),
@@ -83,24 +91,24 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         return data
 
-
     def validate_ingredients(self, value):
         if not value:
             raise serializers.ValidationError("Нужен хотя бы один ингредиент.")
-        
+
         ingredients_list = []
         for item in value:
             ingredient_id = item['id']
             if ingredient_id in ingredients_list:
-                raise serializers.ValidationError("Ингредиенты не должны повторяться.")
-            
+                raise serializers.ValidationError(
+                    "Ингредиенты не должны повторяться.")
+
             # ДОБАВЛЕНО: Проверка существования ингредиента
             if not Ingredient.objects.filter(id=ingredient_id).exists():
-                raise serializers.ValidationError(f"Ингредиента с id {ingredient_id} не существует.")
-            
+                raise serializers.ValidationError(
+                    f"Ингредиента с id {ingredient_id} не существует.")
+
             ingredients_list.append(ingredient_id)
         return value
-
 
     def create_ingredients(self, ingredients, recipe):
 
@@ -111,7 +119,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 amount=ingredient['amount']
             ) for ingredient in ingredients
         ])
-
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
@@ -124,7 +131,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients', None)
         super().update(instance, validated_data)
-
 
         if ingredients_data:
             instance.ingredients.clear()

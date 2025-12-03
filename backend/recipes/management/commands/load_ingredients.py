@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from recipes.models import Ingredient
 
+
 class Command(BaseCommand):
     help = 'Загрузка ингредиентов из JSON файла'
 
@@ -32,9 +33,11 @@ class Command(BaseCommand):
 
             # bulk_create вставляет список объектов одним запросом (это очень быстро)
             # ignore_conflicts=True пропускает дубликаты, если они уже есть в БД
-            Ingredient.objects.bulk_create(ingredients_to_create, ignore_conflicts=True)
+            Ingredient.objects.bulk_create(
+                ingredients_to_create, ignore_conflicts=True)
 
-            self.stdout.write(self.style.SUCCESS(f'Успешно загружено {len(ingredients_to_create)} ингредиентов'))
+            self.stdout.write(self.style.SUCCESS(
+                f'Успешно загружено {len(ingredients_to_create)} ингредиентов'))
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Ошибка при загрузке: {e}'))

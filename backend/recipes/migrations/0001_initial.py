@@ -16,7 +16,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Favorite',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
             ],
             options={
                 'verbose_name': 'Favorite',
@@ -25,9 +26,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Ingredient',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=128, verbose_name='Name')),
-                ('measurement_unit', models.CharField(max_length=64, verbose_name='Unit')),
+                ('measurement_unit', models.CharField(
+                    max_length=64, verbose_name='Unit')),
             ],
             options={
                 'verbose_name': 'Ingredient',
@@ -38,8 +41,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='IngredientInRecipe',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1)], verbose_name='Amount')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('amount', models.PositiveSmallIntegerField(validators=[
+                 django.core.validators.MinValueValidator(1)], verbose_name='Amount')),
             ],
             options={
                 'verbose_name': 'Ingredient in Recipe',
@@ -49,12 +54,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Recipe',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=256, verbose_name='Name')),
-                ('image', models.ImageField(upload_to='recipes/images/', verbose_name='Image')),
+                ('image', models.ImageField(
+                    upload_to='recipes/images/', verbose_name='Image')),
                 ('text', models.TextField(verbose_name='Description')),
-                ('cooking_time', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1)], verbose_name='Cooking Time (min)')),
-                ('pub_date', models.DateTimeField(auto_now_add=True, verbose_name='Publication Date')),
+                ('cooking_time', models.PositiveSmallIntegerField(validators=[
+                 django.core.validators.MinValueValidator(1)], verbose_name='Cooking Time (min)')),
+                ('pub_date', models.DateTimeField(
+                    auto_now_add=True, verbose_name='Publication Date')),
             ],
             options={
                 'verbose_name': 'Recipe',
@@ -65,8 +74,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ShoppingCart',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('recipe', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shopping_cart', to='recipes.recipe')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('recipe', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='shopping_cart', to='recipes.recipe')),
             ],
             options={
                 'verbose_name': 'Shopping Cart',

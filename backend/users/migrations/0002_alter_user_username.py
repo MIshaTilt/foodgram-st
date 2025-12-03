@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='username',
-            field=models.CharField(max_length=150, unique=True, validators=[django.core.validators.RegexValidator('^[\\w.@+-]+$', 'Enter a valid username.')], verbose_name='Username'),
+            field=models.CharField(max_length=150, unique=True, validators=[django.core.validators.RegexValidator(
+                '^[\\w.@+-]+$', 'Enter a valid username.')], verbose_name='Username'),
         ),
     ]

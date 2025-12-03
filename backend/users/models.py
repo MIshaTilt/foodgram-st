@@ -2,17 +2,18 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import RegexValidator
 
+
 class User(AbstractUser):
     # ИЗМЕНЕНИЕ 1: Возвращаем username как поле для логина
     USERNAME_FIELD = 'username'
-    
+
     # ИЗМЕНЕНИЕ 2: email переносим в обязательные поля (так как он перестал быть USERNAME_FIELD)
     # username из списка убираем (он автоматически обязателен, т.к. он USERNAME_FIELD)
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     email = models.EmailField(
-        max_length=254, 
-        unique=True, 
+        max_length=254,
+        unique=True,
         verbose_name='Email Address'
     )
     username = models.CharField(
@@ -25,8 +26,8 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=150, verbose_name='First Name')
     last_name = models.CharField(max_length=150, verbose_name='Last Name')
     avatar = models.ImageField(
-        upload_to='users/avatars/', 
-        null=True, 
+        upload_to='users/avatars/',
+        null=True,
         blank=True,
         verbose_name='Avatar'
     )
@@ -42,14 +43,14 @@ class User(AbstractUser):
 
 class Subscription(models.Model):
     user = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='subscriber',
         verbose_name='Subscriber'
     )
     author = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='subscribing',
         verbose_name='Author'
     )
@@ -57,7 +58,7 @@ class Subscription(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'], 
+                fields=['user', 'author'],
                 name='unique_subscription'
             )
         ]

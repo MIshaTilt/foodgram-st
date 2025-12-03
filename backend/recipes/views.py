@@ -17,13 +17,15 @@ from recipes.serializers import (
 from recipes.permissions import IsAuthorOrReadOnly
 from recipes.filters import RecipeFilter, IngredientFilter
 
+
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'limit'
     page_size = 6
 
+
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
-    permission_classes = (AllowAny,) 
+    permission_classes = (AllowAny,)
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
@@ -52,20 +54,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_from(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
-        
+
         # ИЗМЕНЕНИЕ ЗДЕСЬ:
         # Было: get_object_or_404(model, user=user, recipe=recipe).delete()
         # Стало:
         obj = model.objects.filter(user=user, recipe=recipe)
         if not obj.exists():
             return Response(
-                {'error': 'Рецепт не найден в списке'}, 
+                {'error': 'Рецепт не найден в списке'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
+
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
     @action(detail=True, methods=['post', 'delete'], permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):
@@ -100,7 +101,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         # Убедимся, что рецепт существует (вернет 404, если нет)
         recipe = get_object_or_404(Recipe, pk=pk)
-        
+
         link = request.build_absolute_uri(f'/recipes/{recipe.id}')
-        
+
         return Response({'short-link': link}, status=status.HTTP_200_OK)

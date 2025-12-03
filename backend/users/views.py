@@ -12,9 +12,11 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from users.models import User, Subscription
 from users.serializers import CustomUserSerializer, AvatarSerializer, SubscriptionSerializer, TokenCreateSerializer
 
+
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'limit'
     page_size = 6
+
 
 class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
@@ -29,7 +31,7 @@ class UserViewSet(DjoserUserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         user.avatar.delete()
         user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -39,7 +41,8 @@ class UserViewSet(DjoserUserViewSet):
         user = request.user
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = SubscriptionSerializer(pages, many=True, context={'request': request})
+        serializer = SubscriptionSerializer(
+            pages, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post', 'delete'], permission_classes=[permissions.IsAuthenticated])
@@ -52,30 +55,31 @@ class UserViewSet(DjoserUserViewSet):
                 return Response({'error': 'Cannot subscribe to yourself'}, status=status.HTTP_400_BAD_REQUEST)
             if Subscription.objects.filter(user=user, author=author).exists():
                 return Response({'error': 'Already subscribed'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
             Subscription.objects.create(user=user, author=author)
-            serializer = SubscriptionSerializer(author, context={'request': request})
+            serializer = SubscriptionSerializer(
+                author, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
             # ИЗМЕНЕНИЕ ЗДЕСЬ:
             # Вместо get_object_or_404 проверяем фильтром
-            subscription = Subscription.objects.filter(user=user, author=author)
+            subscription = Subscription.objects.filter(
+                user=user, author=author)
             if not subscription.exists():
                 return Response(
-                    {'error': 'Вы не были подписаны на этого пользователя'}, 
+                    {'error': 'Вы не были подписаны на этого пользователя'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
     def get_permissions(self):
         if self.action == 'me':
             return (permissions.IsAuthenticated(),)
         return super().get_permissions()
 
-
-        
 
 class TokenCreateView(APIView):
     permission_classes = (AllowAny,)
@@ -102,11 +106,11 @@ class TokenCreateView(APIView):
 
         # Возвращаем в формате, который требует ТЗ
         return Response({'auth_token': str(token)}, status=status.HTTP_200_OK)
-    
+
+
 class TokenLogoutView(APIView):
     # Разрешаем доступ всем. Если токена нет — просто вернем 204.
-    permission_classes = (AllowAny,) 
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         return Response(status=status.HTTP_204_NO_CONTENT)
-

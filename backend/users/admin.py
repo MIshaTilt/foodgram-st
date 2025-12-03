@@ -8,19 +8,20 @@ from .models import Subscription
 # ...и регистрируем её в админке:
 admin.site.register(Subscription)
 
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     # Отображаемые поля в списке
     list_display = (
-        'id', 
-        'username', 
-        'email', 
-        'first_name', 
-        'last_name', 
+        'id',
+        'username',
+        'email',
+        'first_name',
+        'last_name',
     )
-    
+
     # ТРЕБОВАНИЕ: Поиск по имени и email
-    search_fields = ('username', 'email') 
-    
+    search_fields = ('username', 'email')
+
     # Фильтры справа (опционально, но удобно)
     list_filter = ('username', 'email')

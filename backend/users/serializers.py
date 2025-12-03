@@ -6,8 +6,11 @@ from djoser.serializers import UserCreateSerializer, UserSerializer as DjoserUse
 from users.models import User, Subscription
 
 # --- Utils (Shared) ---
+
+
 class Base64ImageField(serializers.ImageField):
     """Custom field to handle Base64 encoded images."""
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -17,6 +20,7 @@ class Base64ImageField(serializers.ImageField):
 
 # --- User Serializers ---
 
+
 class CustomUserCreateSerializer(UserCreateSerializer):
     """
     Сериализатор для регистрации пользователей.
@@ -24,7 +28,8 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     """
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'password')
 
 
 class CustomUserSerializer(DjoserUserSerializer):
@@ -33,13 +38,15 @@ class CustomUserSerializer(DjoserUserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'avatar')
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'avatar')
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
         return Subscription.objects.filter(user=user, author=obj).exists()
+
 
 class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField()
@@ -48,12 +55,14 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = User
         fields = ('avatar',)
 
+
 class SubscriptionSerializer(CustomUserSerializer):
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(CustomUserSerializer.Meta):
-        fields = CustomUserSerializer.Meta.fields + ('recipes', 'recipes_count')
+        fields = CustomUserSerializer.Meta.fields + \
+            ('recipes', 'recipes_count')
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -61,7 +70,7 @@ class SubscriptionSerializer(CustomUserSerializer):
     def get_recipes(self, obj):
         # Local import to avoid circular dependency with recipes.serializers
         from recipes.serializers import RecipeMinifiedSerializer
-        
+
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
         recipes = obj.recipes.all()
@@ -71,7 +80,8 @@ class SubscriptionSerializer(CustomUserSerializer):
             except ValueError:
                 pass
         return RecipeMinifiedSerializer(recipes, many=True, context=self.context).data
-    
+
+
 class TokenCreateSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True)
