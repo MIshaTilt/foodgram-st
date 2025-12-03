@@ -9,10 +9,10 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe, Tag
+from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe
 from recipes.serializers import (
     IngredientSerializer, RecipeListSerializer, RecipeCreateSerializer,
-    RecipeMinifiedSerializer, TagSerializer
+    RecipeMinifiedSerializer
 )
 from recipes.permissions import IsAuthorOrReadOnly
 from recipes.filters import RecipeFilter, IngredientFilter
@@ -27,12 +27,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
-    pagination_class = None
-
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    permission_classes = (permissions.AllowAny,) # Теги доступны всем
     pagination_class = None
 
 
@@ -107,8 +101,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         # Убедимся, что рецепт существует (вернет 404, если нет)
         recipe = get_object_or_404(Recipe, pk=pk)
         
-        # Генерируем ссылку. 
-        # build_absolute_uri корректно создаст полный URL (http://domain/s/id)
-        link = request.build_absolute_uri(f'/s/{recipe.id}')
+        link = request.build_absolute_uri(f'/recipes/{recipe.id}')
         
         return Response({'short-link': link}, status=status.HTTP_200_OK)

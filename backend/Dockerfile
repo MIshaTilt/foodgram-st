@@ -1,15 +1,19 @@
-FROM python:3.10
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir setuptools
 
 WORKDIR /app
 
-RUN pip install gunicorn==20.1.0
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY requirements.txt .
+COPY . /app/
 
-COPY ingredients.csv .
+EXPOSE 8000
 
-RUN pip install -r requirements.txt --no-cache-dir
-
-COPY . .
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram.wsgi"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]

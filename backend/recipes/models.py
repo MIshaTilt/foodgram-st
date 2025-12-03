@@ -5,19 +5,6 @@ from django.core.validators import MinValueValidator
 # Use the custom user model defined in the 'users' app
 User = get_user_model()
 
-class Tag(models.Model):
-    name = models.CharField(max_length=32, unique=True, verbose_name='Name')
-    color = models.CharField(max_length=32, unique=True, verbose_name='Color')
-    slug = models.SlugField(max_length=32, unique=True, verbose_name='Slug')
-
-    class Meta:
-        ordering = ['name']
-        verbose_name = 'Tag'
-        verbose_name_plural = 'Tags'
-
-    def __str__(self):
-        return self.name
-
 class Ingredient(models.Model):
     """Represents a cooking ingredient."""
     name = models.CharField(max_length=128, verbose_name='Name')
@@ -46,11 +33,6 @@ class Recipe(models.Model):
         verbose_name='Image'
     )
     text = models.TextField(verbose_name='Description')
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Tags'
-    )
 
     ingredients = models.ManyToManyField(
         Ingredient, 
