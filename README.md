@@ -98,4 +98,3 @@ docker compose exec backend python manage.py createsuperuser
 |---|---|
 | http://localhost/ | Главная страница сайта |
 | http://localhost/admin/ | Панель администратора |
-| http://localhost/api/docs/ | Документация к API (Redoc) |
