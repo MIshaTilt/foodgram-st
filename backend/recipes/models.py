@@ -58,7 +58,6 @@ class Recipe(models.Model):
 
 
 class IngredientInRecipe(models.Model):
-    """Intermediate model for Many-to-Many relationship between Recipe and Ingredient."""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,

@@ -1,8 +1,9 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from recipes.models import Recipe, Ingredient, IngredientInRecipe, Favorite, ShoppingCart
-from users.serializers import CustomUserSerializer, Base64ImageField
+from recipes.models import Recipe, Ingredient, IngredientInRecipe, Favorite, \
+    ShoppingCart
+from users.serializers import CustomUserSerializer, \
+    Base64ImageField
 
 # --- Ingredient Serializers ---
 
@@ -55,7 +56,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            'id', 'author', 'ingredients', 'is_favorited', 'is_in_shopping_cart',
+            'id', 'author', 'ingredients', 'is_favorited',
+            'is_in_shopping_cart',
             'name', 'image', 'text', 'cooking_time'
         )
 
@@ -87,7 +89,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         # то поле 'ingredients' должно обязательно присутствовать в данных.
         if self.instance and 'ingredients' not in data:
             raise serializers.ValidationError(
-                {"ingredients": "Это поле обязательно для заполнения при обновлении."}
+                {"ingredients": (
+                    "Это поле обязательно для заполнения при обновлении."
+                )}
             )
         return data
 

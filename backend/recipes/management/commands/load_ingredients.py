@@ -31,13 +31,11 @@ class Command(BaseCommand):
                 )
                 ingredients_to_create.append(ingredient)
 
-            # bulk_create вставляет список объектов одним запросом (это очень быстро)
-            # ignore_conflicts=True пропускает дубликаты, если они уже есть в БД
             Ingredient.objects.bulk_create(
                 ingredients_to_create, ignore_conflicts=True)
 
             self.stdout.write(self.style.SUCCESS(
-                f'Успешно загружено {len(ingredients_to_create)} ингредиентов'))
+                f'Загружено {len(ingredients_to_create)} ингредиентов'))
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Ошибка при загрузке: {e}'))

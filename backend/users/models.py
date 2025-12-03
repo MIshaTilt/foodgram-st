@@ -7,8 +7,6 @@ class User(AbstractUser):
     # ИЗМЕНЕНИЕ 1: Возвращаем username как поле для логина
     USERNAME_FIELD = 'username'
 
-    # ИЗМЕНЕНИЕ 2: email переносим в обязательные поля (так как он перестал быть USERNAME_FIELD)
-    # username из списка убираем (он автоматически обязателен, т.к. он USERNAME_FIELD)
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     email = models.EmailField(
@@ -19,7 +17,6 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        # FIX: Replaced \z with $ for Python's standard re module compatibility.
         validators=[RegexValidator(r'^[\w.@+-]+$', 'Enter a valid username.')],
         verbose_name='Username'
     )

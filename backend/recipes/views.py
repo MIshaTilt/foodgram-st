@@ -7,9 +7,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 
-from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe
+from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, \
+    IngredientInRecipe
 from recipes.serializers import (
     IngredientSerializer, RecipeListSerializer, RecipeCreateSerializer,
     RecipeMinifiedSerializer
@@ -47,7 +48,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def add_to(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
         if model.objects.filter(user=user, recipe=recipe).exists():
-            return Response({'error': 'Recipe already added'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Recipe already added'},
+                            status=status.HTTP_400_BAD_REQUEST)
         model.objects.create(user=user, recipe=recipe)
         serializer = RecipeMinifiedSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -68,13 +70,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             return self.add_to(Favorite, request.user, pk)
         return self.delete_from(Favorite, request.user, pk)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[permissions.IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
             return self.add_to(ShoppingCart, request.user, pk)
@@ -90,7 +94,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         shopping_list = "Shopping List:\n\n"
         for item in ingredients:
-            shopping_list += f"{item['ingredient__name']} ({item['ingredient__measurement_unit']}) — {item['amount']}\n"
+            shopping_list += (
+                f"{item['ingredient__name']} "
+                f"({item['ingredient__measurement_unit']}) — "
+                f"{item['amount']}\n"
+            )
 
         filename = "shopping_list.txt"
         response = HttpResponse(shopping_list, content_type='text/plain')

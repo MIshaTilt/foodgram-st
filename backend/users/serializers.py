@@ -1,7 +1,8 @@
 import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from djoser.serializers import UserCreateSerializer, UserSerializer as DjoserUserSerializer
+from djoser.serializers import UserCreateSerializer, \
+    UserSerializer as DjoserUserSerializer
 
 from users.models import User, Subscription
 
@@ -79,7 +80,8 @@ class SubscriptionSerializer(CustomUserSerializer):
                 recipes = recipes[:int(limit)]
             except ValueError:
                 pass
-        return RecipeMinifiedSerializer(recipes, many=True, context=self.context).data
+        return RecipeMinifiedSerializer(recipes, many=True,
+                                        context=self.context).data
 
 
 class TokenCreateSerializer(serializers.Serializer):
