@@ -6,22 +6,93 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, \
-    IngredientInRecipe
-from recipes.serializers import (
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
+
+# Импорты моделей
+from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe
+from users.models import User, Subscription
+
+# Импорты из текущего приложения api
+from .serializers import (
     IngredientSerializer, RecipeListSerializer, RecipeCreateSerializer,
-    RecipeMinifiedSerializer
+    RecipeMinifiedSerializer, CustomUserSerializer,
+    AvatarSerializer, SubscriptionSerializer
 )
-from recipes.permissions import IsAuthorOrReadOnly
-from recipes.filters import RecipeFilter, IngredientFilter
+from .permissions import IsAuthorOrReadOnly
+from .filters import RecipeFilter, IngredientFilter
 
 
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'limit'
     page_size = 6
+
+
+class UserViewSet(DjoserUserViewSet):
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+    pagination_class = CustomPagination
+
+    @action(detail=False, methods=['put', 'delete'], 
+            permission_classes=[permissions.IsAuthenticated], 
+            url_path='me/avatar')
+    def avatar(self, request):
+        user = request.user
+        if request.method == 'PUT':
+            serializer = AvatarSerializer(user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        user.avatar.delete()
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, permission_classes=[permissions.IsAuthenticated])
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(subscribing__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscriptionSerializer(
+            pages, many=True, context={'request': request})
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, methods=['post', 'delete'], 
+            permission_classes=[permissions.IsAuthenticated])
+    def subscribe(self, request, id=None):
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+
+        if request.method == 'POST':
+            if user == author:
+                return Response({'error': 'Cannot subscribe to yourself'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if Subscription.objects.filter(user=user, author=author).exists():
+                return Response({'error': 'Already subscribed'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            Subscription.objects.create(user=user, author=author)
+            serializer = SubscriptionSerializer(
+                author, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            subscription = Subscription.objects.filter(user=user, author=author)
+            if not subscription.exists():
+                return Response(
+                    {'error': 'Вы не были подписаны на этого пользователя'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_permissions(self):
+        if self.action == 'me':
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -56,17 +127,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_from(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
-
-        # ИЗМЕНЕНИЕ ЗДЕСЬ:
-        # Было: get_object_or_404(model, user=user, recipe=recipe).delete()
-        # Стало:
         obj = model.objects.filter(user=user, recipe=recipe)
         if not obj.exists():
             return Response(
                 {'error': 'Рецепт не найден в списке'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -87,7 +153,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=[permissions.IsAuthenticated])
     def download_shopping_cart(self, request):
         ingredients = IngredientInRecipe.objects.filter(
-            recipe__shopping_cart__user=request.user
+            recipe__shopping_carts__user=request.user
         ).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
@@ -107,9 +173,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
-        # Убедимся, что рецепт существует (вернет 404, если нет)
         recipe = get_object_or_404(Recipe, pk=pk)
-
         link = request.build_absolute_uri(f'/recipes/{recipe.id}')
-
         return Response({'short-link': link}, status=status.HTTP_200_OK)

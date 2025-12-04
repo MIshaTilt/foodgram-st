@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = 'Загрузка ингредиентов из JSON файла'
 
     def handle(self, *args, **options):
-        # Путь к файлу. Предполагается, что папка data лежит в корне backend
+        # ingredients.json лежит в корне backend
         file_path = os.path.join(settings.BASE_DIR, 'ingredients.json')
 
         if not os.path.exists(file_path):
@@ -24,7 +24,6 @@ class Command(BaseCommand):
 
             ingredients_to_create = []
             for item in data:
-                # Создаем объект, но пока не сохраняем в БД
                 ingredient = Ingredient(
                     name=item['name'],
                     measurement_unit=item['measurement_unit']

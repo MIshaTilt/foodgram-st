@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Recipe, Ingredient, Favorite, ShoppingCart, \
-    IngredientInRecipe
+from .models import (
+    Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe
+)
 
 
 class IngredientInline(admin.TabularInline):
@@ -32,5 +33,15 @@ class IngredientAdmin(admin.ModelAdmin):
     list_filter = ('measurement_unit',)
 
 
-admin.site.register(Favorite)
-admin.site.register(ShoppingCart)
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'recipe')
+
+    search_fields = ('user__username', 'user__email', 'recipe__name')
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'recipe')
+
+    search_fields = ('user__username', 'user__email', 'recipe__name')
