@@ -10,22 +10,21 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from api.filters import IngredientFilter, RecipeFilter
+from api.paginations import LimitPageNumberPagination
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import (AvatarSerializer, IngredientSerializer,
+                             RecipeCreateSerializer, RecipeListSerializer,
+                             RecipeMinifiedSerializer, SubscriptionSerializer,
+                             UserSerializer)
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingCart)
 from users.models import Subscription, User
 
-from .filters import IngredientFilter, RecipeFilter
-from .paginations import LimitPageNumberPagination
-from .permissions import IsAuthorOrReadOnly
-from .serializers import (AvatarSerializer, CustomUserSerializer,
-                          IngredientSerializer, RecipeCreateSerializer,
-                          RecipeListSerializer, RecipeMinifiedSerializer,
-                          SubscriptionSerializer)
-
 
 class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
-    serializer_class = CustomUserSerializer
+    serializer_class = UserSerializer
     pagination_class = LimitPageNumberPagination
 
     @action(detail=False, methods=['put', 'delete'],
@@ -71,16 +70,16 @@ class UserViewSet(DjoserUserViewSet):
                 author, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            subscription = Subscription.objects.filter(
-                user=user, author=author)
-            if not subscription.exists():
-                return Response(
-                    {'error': 'Вы не были подписаны на этого пользователя'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        deleted_count, _ = Subscription.objects.filter(user=user,
+                                                       author=author).delete()
+
+        if deleted_count == 0:
+            return Response(
+                {'error': 'Вы не были подписаны на этого пользователя'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_permissions(self):
         if self.action == 'me':

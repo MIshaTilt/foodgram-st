@@ -20,18 +20,18 @@ DATABASES = {
 
 
 INSTALLED_APPS = [
-    'api.apps.ApiConfig',
-    'recipes.apps.RecipesConfig',
-    'users.apps.UsersConfig',
-    'djoser',
-    'rest_framework',
-    'rest_framework.authtoken',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
+    'djoser',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'users.apps.UsersConfig',
+    'recipes.apps.RecipesConfig',
+    'api.apps.ApiConfig',
 ]
 
 
@@ -114,14 +114,12 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
 
     'SERIALIZERS': {
-        'user_create': 'api.serializers.CustomUserCreateSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
+        'user': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.AllowAny'],
         'user_list': ['rest_framework.permissions.AllowAny'],
-        'current_user': ['rest_framework.permissions.IsAuthenticated'],
     }
 }
 

@@ -9,9 +9,9 @@ from .constants import (EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH,
 
 
 class User(AbstractUser):
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'email'
 
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     email = models.EmailField(
         max_length=EMAIL_MAX_LENGTH,

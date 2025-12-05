@@ -1,6 +1,7 @@
-from foodgram.constants import (INGREDIENT_NAME_MAX_LENGTH, MIN_AMOUNT,
-                                MIN_COOKING_TIME, RECIPE_NAME_MAX_LENGTH,
-                                UNIT_MAX_LENGTH)
+from foodgram.constants import (INGREDIENT_NAME_MAX_LENGTH,
+                                MAX_INGREDIENT_AMOUNT, MIN_AMOUNT,
+                                MIN_COOKING_TIME, MIN_INGREDIENT_AMOUNT,
+                                RECIPE_NAME_MAX_LENGTH, UNIT_MAX_LENGTH)
 
 NAME_MAX_LENGTH = INGREDIENT_NAME_MAX_LENGTH
 
@@ -10,4 +11,6 @@ __all__ = [
     'RECIPE_NAME_MAX_LENGTH',
     'MIN_COOKING_TIME',
     'MIN_AMOUNT',
+    'MIN_INGREDIENT_AMOUNT',
+    'MAX_INGREDIENT_AMOUNT'
 ]

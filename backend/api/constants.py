@@ -1,6 +1,9 @@
-from foodgram.constants import DEFAULT_PAGE_SIZE, PAGE_SIZE_QUERY_PARAM
+from foodgram.constants import (DEFAULT_PAGE_SIZE, MAX_INGREDIENT_AMOUNT,
+                                MIN_INGREDIENT_AMOUNT, PAGE_SIZE_QUERY_PARAM)
 
 __all__ = [
     'DEFAULT_PAGE_SIZE',
     'PAGE_SIZE_QUERY_PARAM',
+    'MIN_INGREDIENT_AMOUNT',
+    'MAX_INGREDIENT_AMOUNT'
 ]
