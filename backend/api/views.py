@@ -23,17 +23,6 @@ from .serializers import (AvatarSerializer, CustomUserSerializer,
                           SubscriptionSerializer)
 
 
-def _generate_shopping_list_text(self, ingredients):
-    shopping_list = "Список покупок:\n\n"
-    for item in ingredients:
-        shopping_list += (
-            f"• {item['ingredient__name']} "
-            f"({item['ingredient__measurement_unit']}) — "
-            f"{item['amount']}\n"
-        )
-    return shopping_list
-
-
 class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
@@ -115,6 +104,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+
+    def _generate_shopping_list_text(self, ingredients):
+        shopping_list = "Список покупок:\n\n"
+        for item in ingredients:
+            shopping_list += (
+                f"• {item['ingredient__name']} "
+                f"({item['ingredient__measurement_unit']}) — "
+                f"{item['amount']}\n"
+            )
+        return shopping_list
 
     def get_serializer_class(self):
         if self.request.method not in permissions.SAFE_METHODS:

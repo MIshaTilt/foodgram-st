@@ -1,3 +1,4 @@
+from djoser.serializers import UserCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -7,13 +8,20 @@ from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
 from users.models import User
 
 
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta(UserCreateSerializer.Meta):
+        fields = ('id', 'username', 'first_name', 'last_name', 'email',
+                  'password')
+
+
 class CustomUserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     avatar = serializers.ImageField(read_only=True)
 
     class Meta(DjoserUserSerializer.Meta):
         model = User
-        fields = DjoserUserSerializer.Meta.fields + ('is_subscribed', 'avatar')
+        fields = DjoserUserSerializer.Meta.fields + ('username',
+                                                     'is_subscribed', 'avatar')
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
@@ -103,6 +111,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'ingredients', 'image', 'name',
                   'text', 'cooking_time', 'author')
+
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Это поле не может быть пустым.'
+            )
+        return value
 
     def validate(self, data):
         if self.instance and 'ingredients' not in data:

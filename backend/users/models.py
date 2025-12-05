@@ -1,3 +1,5 @@
+# --- START OF FILE models.py (переведенная версия) ---
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
@@ -14,30 +16,30 @@ class User(AbstractUser):
     email = models.EmailField(
         max_length=EMAIL_MAX_LENGTH,
         unique=True,
-        verbose_name='Email Address'
+        verbose_name='Адрес электронной почты'
     )
     username = models.CharField(
         max_length=USERNAME_MAX_LENGTH,
         unique=True,
         validators=[RegexValidator(USERNAME_REGEX_PATTERN,
-                                   'Enter a valid username.')],
-        verbose_name='Username'
+                                   'Введите корректное имя пользователя.')],
+        verbose_name='Имя пользователя'
     )
     first_name = models.CharField(max_length=NAME_MAX_LENGTH,
-                                  verbose_name='First Name')
+                                  verbose_name='Имя')
     last_name = models.CharField(max_length=NAME_MAX_LENGTH,
-                                 verbose_name='Last Name')
+                                 verbose_name='Фамилия')
     avatar = models.ImageField(
         upload_to='users/avatars/',
         null=True,
         blank=True,
-        verbose_name='Avatar'
+        verbose_name='Аватар'
     )
 
     class Meta:
         ordering = ['username']
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.username
@@ -48,13 +50,13 @@ class Subscription(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='subscriber',
-        verbose_name='Subscriber'
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='subscribing',
-        verbose_name='Author'
+        verbose_name='Автор'
     )
 
     class Meta:
@@ -64,8 +66,8 @@ class Subscription(models.Model):
                 name='unique_subscription'
             )
         ]
-        verbose_name = 'Subscription'
-        verbose_name_plural = 'Subscriptions'
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
     def __str__(self):
-        return f'{self.user} follows {self.author}'
+        return f'{self.user} подписан на {self.author}'
