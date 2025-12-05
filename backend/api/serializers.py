@@ -95,8 +95,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def _check_relation(self, obj, related_manager_name):
         user = self.context.get('request').user
         return (
-            user.is_authenticated and
-            getattr(obj, related_manager_name).filter(user=user).exists()
+            user.is_authenticated
+            and getattr(obj, related_manager_name).filter(user=user).exists()
         )
 
     def get_is_favorited(self, obj):
