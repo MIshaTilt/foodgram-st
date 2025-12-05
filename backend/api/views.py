@@ -1,43 +1,46 @@
-from django.shortcuts import get_object_or_404
+import io
+
 from django.db.models import Sum
-from django.http import HttpResponse
-
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
-# Импорты моделей
-from recipes.models import Recipe, Ingredient, Favorite, ShoppingCart, IngredientInRecipe
-from users.models import User, Subscription
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart)
+from users.models import Subscription, User
 
-# Импорты из текущего приложения api
-from .serializers import (
-    IngredientSerializer, RecipeListSerializer, RecipeCreateSerializer,
-    RecipeMinifiedSerializer, CustomUserSerializer,
-    AvatarSerializer, SubscriptionSerializer
-)
+from .filters import IngredientFilter, RecipeFilter
+from .paginations import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
-from .filters import RecipeFilter, IngredientFilter
+from .serializers import (AvatarSerializer, CustomUserSerializer,
+                          IngredientSerializer, RecipeCreateSerializer,
+                          RecipeListSerializer, RecipeMinifiedSerializer,
+                          SubscriptionSerializer)
 
 
-class CustomPagination(PageNumberPagination):
-    page_size_query_param = 'limit'
-    page_size = 6
+def _generate_shopping_list_text(self, ingredients):
+    shopping_list = "Список покупок:\n\n"
+    for item in ingredients:
+        shopping_list += (
+            f"• {item['ingredient__name']} "
+            f"({item['ingredient__measurement_unit']}) — "
+            f"{item['amount']}\n"
+        )
+    return shopping_list
 
 
 class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = CustomPagination
+    pagination_class = LimitPageNumberPagination
 
-    @action(detail=False, methods=['put', 'delete'], 
-            permission_classes=[permissions.IsAuthenticated], 
+    @action(detail=False, methods=['put', 'delete'],
+            permission_classes=[permissions.IsAuthenticated],
             url_path='me/avatar')
     def avatar(self, request):
         user = request.user
@@ -60,7 +63,7 @@ class UserViewSet(DjoserUserViewSet):
             pages, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['post', 'delete'], 
+    @action(detail=True, methods=['post', 'delete'],
             permission_classes=[permissions.IsAuthenticated])
     def subscribe(self, request, id=None):
         user = request.user
@@ -80,7 +83,8 @@ class UserViewSet(DjoserUserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            subscription = Subscription.objects.filter(user=user, author=author)
+            subscription = Subscription.objects.filter(
+                user=user, author=author)
             if not subscription.exists():
                 return Response(
                     {'error': 'Вы не были подписаны на этого пользователя'},
@@ -106,13 +110,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = CustomPagination
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsAuthorOrReadOnly]
+    pagination_class = LimitPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ('create', 'partial_update'):
+        if self.request.method not in permissions.SAFE_METHODS:
             return RecipeCreateSerializer
         return RecipeListSerializer
 
@@ -127,13 +132,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_from(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
-        obj = model.objects.filter(user=user, recipe=recipe)
-        if not obj.exists():
+        deleted_count, _ = model.objects.filter(
+            user=user,
+            recipe=recipe
+        ).delete()
+        if deleted_count == 0:
             return Response(
                 {'error': 'Рецепт не найден в списке'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post', 'delete'],
@@ -155,20 +162,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = IngredientInRecipe.objects.filter(
             recipe__shopping_carts__user=request.user
         ).values(
-            'ingredient__name', 'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            amount=Sum('amount')
+        ).order_by('ingredient__name')
 
-        shopping_list = "Shopping List:\n\n"
-        for item in ingredients:
-            shopping_list += (
-                f"{item['ingredient__name']} "
-                f"({item['ingredient__measurement_unit']}) — "
-                f"{item['amount']}\n"
-            )
+        shopping_list_text = self._generate_shopping_list_text(ingredients)
 
-        filename = "shopping_list.txt"
-        response = HttpResponse(shopping_list, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        file_object = io.BytesIO(shopping_list_text.encode('utf-8'))
+
+        response = FileResponse(
+            file_object,
+            as_attachment=True,
+            filename='shopping_list.txt',
+            content_type='text/plain; charset=utf-8'
+        )
+
         return response
 
     @action(detail=True, methods=['get'], url_path='get-link')

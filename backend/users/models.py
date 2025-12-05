@@ -1,27 +1,32 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.core.validators import RegexValidator
+from django.db import models
+
+from .constants import (EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH,
+                        USERNAME_REGEX_PATTERN)
 
 
 class User(AbstractUser):
-    # ИЗМЕНЕНИЕ 1: Возвращаем username как поле для логина
     USERNAME_FIELD = 'username'
 
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     email = models.EmailField(
-        max_length=254,
+        max_length=EMAIL_MAX_LENGTH,
         unique=True,
         verbose_name='Email Address'
     )
     username = models.CharField(
-        max_length=150,
+        max_length=USERNAME_MAX_LENGTH,
         unique=True,
-        validators=[RegexValidator(r'^[\w.@+-]+$', 'Enter a valid username.')],
+        validators=[RegexValidator(USERNAME_REGEX_PATTERN,
+                                   'Enter a valid username.')],
         verbose_name='Username'
     )
-    first_name = models.CharField(max_length=150, verbose_name='First Name')
-    last_name = models.CharField(max_length=150, verbose_name='Last Name')
+    first_name = models.CharField(max_length=NAME_MAX_LENGTH,
+                                  verbose_name='First Name')
+    last_name = models.CharField(max_length=NAME_MAX_LENGTH,
+                                 verbose_name='Last Name')
     avatar = models.ImageField(
         upload_to='users/avatars/',
         null=True,
@@ -30,7 +35,7 @@ class User(AbstractUser):
     )
 
     class Meta:
-        ordering = ['id']
+        ordering = ['username']
         verbose_name = 'User'
         verbose_name_plural = 'Users'
 

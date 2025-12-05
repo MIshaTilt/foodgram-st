@@ -1,10 +1,7 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-# УБРАЛИ TokenCreateView и TokenLogoutView из импорта
-from api.views import (
-    UserViewSet, IngredientViewSet, RecipeViewSet
-)
+from api.views import IngredientViewSet, RecipeViewSet, UserViewSet
 
 router = DefaultRouter()
 router.register('users', UserViewSet, basename='users')

@@ -1,13 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-from .constants import (
-    MIN_AMOUNT,
-    MIN_COOKING_TIME,
-    NAME_MAX_LENGTH,
-    RECIPE_NAME_MAX_LENGTH,
-    UNIT_MAX_LENGTH,
-)
+
+from .constants import (MIN_AMOUNT, MIN_COOKING_TIME, NAME_MAX_LENGTH,
+                        RECIPE_NAME_MAX_LENGTH, UNIT_MAX_LENGTH)
 
 User = get_user_model()
 
@@ -133,6 +129,9 @@ class Favorite(UserRecipeRelation):
             )
         ]
 
+    def __str__(self):
+        return f'"{self.recipe}" в избранном у {self.user}'
+
 
 class ShoppingCart(UserRecipeRelation):
 
@@ -146,3 +145,6 @@ class ShoppingCart(UserRecipeRelation):
                 name='unique_shopping_cart'
             )
         ]
+
+    def __str__(self):
+        return f'"{self.recipe}" в корзине у {self.user}'
